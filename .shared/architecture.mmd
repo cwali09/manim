@@ -1,0 +1,79 @@
+graph TD
+    subgraph CLI["Entry Point"]
+        MAIN["__main__.py<br/>main()"]
+        CONFIG["config.py<br/>CLI args + YAML"]
+        EXTRACT["extract_scene.py<br/>Scene discovery"]
+    end
+
+    subgraph SceneLayer["Scene Layer"]
+        SCENE["Scene<br/>Orchestrator"]
+        INTERACTIVE["InteractiveScene<br/>IPython embed"]
+        FILEWRITER["SceneFileWriter<br/>FFmpeg encoding"]
+    end
+
+    subgraph MobjectLayer["Mobject Layer"]
+        MOBJECT["Mobject<br/>Base renderable"]
+        VMOBJECT["VMobject<br/>Vector graphics"]
+        GEOMETRY["Geometry<br/>Dot, Line, Circle..."]
+        SVG["SVGMobject<br/>SVG/LaTeX parsing"]
+        TEXT["TexMobject / TextMobject"]
+        SURFACE["Surface<br/>3D objects"]
+        TRACKER["ValueTracker<br/>Observable values"]
+    end
+
+    subgraph AnimationLayer["Animation Layer"]
+        ANIMATION["Animation<br/>Base interpolation"]
+        CREATION["Creation<br/>Write, DrawBorderThenFill"]
+        TRANSFORM["Transform<br/>ReplacementTransform"]
+        FADING["Fading<br/>FadeIn, FadeOut"]
+        INDICATION["Indication<br/>Flash, Wiggle"]
+        COMPOSITION["Composition<br/>AnimationGroup, Succession"]
+        RATEFN["Rate Functions<br/>smooth, linear, rush..."]
+    end
+
+    subgraph RenderLayer["Rendering Layer"]
+        CAMERA["Camera<br/>ModernGL context + FBO"]
+        FRAME["CameraFrame<br/>Viewport + 3D transform"]
+        SHADERS["GLSL Shaders<br/>Vertex + Fragment"]
+        WINDOW["Window<br/>Pyglet + OpenGL"]
+    end
+
+    subgraph Output["Output"]
+        VIDEO["Video File<br/>MP4 via FFmpeg"]
+        IMAGE["Last Frame<br/>PNG"]
+        DISPLAY["Live Window<br/>Interactive"]
+    end
+
+    MAIN --> CONFIG
+    CONFIG --> EXTRACT
+    EXTRACT --> SCENE
+
+    SCENE --> FILEWRITER
+    INTERACTIVE --> SCENE
+
+    SCENE -->|"add/remove"| MOBJECT
+    SCENE -->|"play()"| ANIMATION
+    SCENE -->|"update_frame()"| CAMERA
+
+    MOBJECT --> VMOBJECT
+    VMOBJECT --> GEOMETRY
+    VMOBJECT --> SVG
+    SVG --> TEXT
+    MOBJECT --> SURFACE
+    MOBJECT --> TRACKER
+
+    ANIMATION --> CREATION
+    ANIMATION --> TRANSFORM
+    ANIMATION --> FADING
+    ANIMATION --> INDICATION
+    ANIMATION --> COMPOSITION
+    ANIMATION --> RATEFN
+    ANIMATION -->|"interpolate(alpha)"| MOBJECT
+
+    CAMERA --> FRAME
+    CAMERA --> SHADERS
+    CAMERA --> WINDOW
+
+    FILEWRITER --> VIDEO
+    FILEWRITER --> IMAGE
+    WINDOW --> DISPLAY
